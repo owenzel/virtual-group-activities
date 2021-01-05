@@ -1,7 +1,8 @@
-import '../styles/globals.css'
+// import '../styles/globals.css';
+// import 'antd/dist/antd.css';
 
-function MyApp({ Component, pageProps }) {
-  return <Component {...pageProps} />
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+export default function MyApp({ Component, pageProps }) {
+  return <Component {...pageProps} />;
 }
-
-export default MyApp
