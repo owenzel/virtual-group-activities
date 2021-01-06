@@ -26,9 +26,6 @@ export function JoinRoom({ socket, updateScreen }) {
         return alert(data.error);
       }
 
-      // Join game room
-      //socket.emit('joinRoom', { name: nameRef.current.value, room: roomIdRef.current.value });
-
       // Update the activity screen, and pass in the selected activities and whether or not this user is the host
       updateScreen(data.host, nameRef.current.value, data.selectedActivities, roomIdRef.current.value);
     });

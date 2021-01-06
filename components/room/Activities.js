@@ -1,12 +1,12 @@
-import { useState } from 'react';
+//import { useState } from 'react';
 import { Container, Row, Col, Card, ListGroup, ButtonGroup, Button } from 'react-bootstrap';
 
-export function WouldYouRather({ socket }) {
-    const [roomUsers, setRoomUsers] = useState([]);
+export function WouldYouRather({ users }) {
+    //const [roomUsers, setRoomUsers] = useState([]);
 
-    socket.on('roomUsers', ({ userList }) => {
-        setRoomUsers(userList);
-    });
+    // socket.on('roomUsers', ({ userList }) => {
+    //     setRoomUsers(userList);
+    // });
 
     return (
         <Container>
@@ -15,8 +15,8 @@ export function WouldYouRather({ socket }) {
                     <Card >
                         <h5>Scoreboard</h5>
                         <ListGroup id="users-list">
-                            {roomUsers.map((user, index) => {
-                                return <ListGroup.Item key={index}>{user.name}</ListGroup.Item>
+                            {users.map((user) => {
+                                return <ListGroup.Item key={user.peerId}>{user.name}</ListGroup.Item>
                             })}
                         </ListGroup>
                     </Card>

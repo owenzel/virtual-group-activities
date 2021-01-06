@@ -59,7 +59,7 @@ app.post('/api/create', [
 ], (req, res) => {
   // If the inputs are not valid, throw an error
   const errors = validationResult(req);
-  // TODO: Differentiate between errors caused by user input (name, email, pass) and errors caused by not receiving UUID...ALSO on client side, handle such an error appearing
+  // TODO: Differentiate between errors caused by user input (name, email, pass) and errors caused by not receiving UUID
   if (!errors.isEmpty()) {
     return res.send({ error: 'Please enter a valid name, email, and password.' });
   }
@@ -136,24 +136,27 @@ io.on('connection', socket => {
   });
 
     socket.on('sendingSignal', payload => {
-        io.to(payload.userToSignal).emit('userJoined', { signal: payload.signal, callerID: payload.callerID });
+        const userName = rooms[roomId]['users'].find(user => user.id == payload.callerId).name;
+        io.to(payload.userToSignal).emit('userJoined', { signal: payload.signal, callerId: payload.callerId, callerName: userName });
     });
 
     socket.on('returningSignal', payload => {
-        io.to(payload.callerID).emit('receivingReturnedSignal', { signal: payload.signal, id: socket.id });
+        io.to(payload.callerId).emit('receivingReturnedSignal', { signal: payload.signal, id: socket.id });
     });
 
   // Handle the user disconnecting
   socket.on('disconnect', () => {
     // Find the user that disconnected in memory and, if they exist, proceed with removing them
-    const index = roomUsers.findIndex(user => user.id === socket.id);
+    if (roomUsers)
+    {
+      const index = roomUsers.findIndex(user => user.id === socket.id);
     
-    if (index !== -1) {
-      // Remove the user from memory
-      roomUsers.splice(index, 1);
+      if (index !== -1) {
+        // Remove the user from memory
+        roomUsers.splice(index, 1);
 
-      // Send the updated list of users to the client
-      io.in(roomId).emit('roomUsers', { userList: roomUsers });
+        io.in(roomId).emit('userLeft', socket.id);
+      }
     }
   })
     

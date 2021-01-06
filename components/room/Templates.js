@@ -55,9 +55,9 @@ export function VideoTopTemplate({ isHost, name, selectedActivities, room, socke
                 setUsers(users);
             });
             socket.on('userJoined', payload => {
-                const user = addUser(payload.signal, payload.callerID, stream);
+                const user = addUser(payload.signal, payload.callerName, payload.callerId, stream);
                 usersRef.current.push({
-                    peerId: payload.callerID,
+                    peerId: payload.callerId,
                     peer: user.peer,
                 });
 
@@ -67,36 +67,46 @@ export function VideoTopTemplate({ isHost, name, selectedActivities, room, socke
                 const item = usersRef.current.find(u => u.peerId == payload.id);
                 item.peer.signal(payload.signal);
             });
+
+            socket.on('userLeft', id => {
+                const user = usersRef.current.find(u => u.peerId == id);
+                if (user) {
+                    user.peer.destroy();
+                }
+                const users = usersRef.current.filter(u => u.peerId != id);
+                usersRef.current = users;
+                setUsers(users);
+            })
         });
     }, []);
 
-    function createUser(userToSignal, userName, callerID, stream) {
+    function createUser(userToSignal, userName, callerId, stream) {
         const peer = new Peer({
             initiator: true,
             trickle: false,
             stream,
         });
 
-        const user = { name: userName, peer: peer };
+        const user = { peerId: userToSignal, name: userName, peer: peer };
 
         user.peer.on('signal', signal => {
-            socket.emit('sendingSignal', { userToSignal, callerID, signal });
+            socket.emit('sendingSignal', { userToSignal, callerId, signal });
         });
 
         return user;
     }
 
-    function addUser(incomingSignal, callerID, stream) {
+    function addUser(incomingSignal, callerName, callerId, stream) {
         const peer = new Peer({
             initiator: false,
             trickle: false,
             stream,
         });
 
-        const user = { peer: peer };
+        const user = { peerId: callerId, name: callerName, peer: peer };
 
         user.peer.on("signal", signal => {
-            socket.emit("returningSignal", { signal, callerID })
+            socket.emit("returningSignal", { signal, callerId })
         })
 
         user.peer.signal(incomingSignal);
@@ -107,19 +117,18 @@ export function VideoTopTemplate({ isHost, name, selectedActivities, room, socke
     return (
         <Container>
             <Row>
-                {/*<video muted ref={userVideo} autoPlay playsInline />*/}
                 <CardGroup style={{ textAlign: 'center', display: 'flex', flexDirection: 'row' }}>
                     <Card>
                         <video muted playsInline autoPlay ref={userVideoRef} style={{ margin: 'auto', width: '60%' }}/>
                         <Card.Title>{name}</Card.Title>
                     </Card>
-                    {users.map((user, index) => {
-                        return <VideoChatWindow key={index} user={user} style={{flex: 1}} />
+                    {users.map((user) => {
+                        return <VideoChatWindow key={user.peerId} user={user} style={{flex: 1}} />
                     })}
                 </CardGroup>
             </Row>
             <Row style={{ marginTop: '30px'}}>
-                <ActivityComponent socket={socket} />
+                <ActivityComponent users={[{ name: name}, ...users]} />
             </Row>
         </Container>
     );
