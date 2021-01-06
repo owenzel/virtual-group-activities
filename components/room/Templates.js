@@ -40,10 +40,11 @@ export function VideoTopTemplate({ isHost, name, selectedActivities, room, socke
 
             // Join game room
             socket.emit('joinRoom', { name: name, room: room });
+
+            // Get all other users in the room
             socket.on('roomUsers', ({ userList }) => {
                 userList = userList.filter(user => user.id !== socket.id);
                 const users = [];
-                console.log(userList);
                 userList.forEach(u => {
                     const user = createUser(u.id, u.name, socket.id, stream);
                     usersRef.current.push({
@@ -54,20 +55,23 @@ export function VideoTopTemplate({ isHost, name, selectedActivities, room, socke
                 });
                 setUsers(users);
             });
+
+            // Handle another user joining the room
             socket.on('userJoined', payload => {
                 const user = addUser(payload.signal, payload.callerName, payload.callerId, stream);
                 usersRef.current.push({
                     peerId: payload.callerId,
                     peer: user.peer,
                 });
-
                 setUsers(users => [...users, user]);
             });
+
             socket.on('receivingReturnedSignal', payload => {
                 const item = usersRef.current.find(u => u.peerId == payload.id);
                 item.peer.signal(payload.signal);
             });
 
+            // Handle another user leaving the room
             socket.on('userLeft', id => {
                 const user = usersRef.current.find(u => u.peerId == id);
                 if (user) {
@@ -86,13 +90,10 @@ export function VideoTopTemplate({ isHost, name, selectedActivities, room, socke
             trickle: false,
             stream,
         });
-
         const user = { peerId: userToSignal, name: userName, peer: peer };
-
         user.peer.on('signal', signal => {
             socket.emit('sendingSignal', { userToSignal, callerId, signal });
         });
-
         return user;
     }
 
@@ -102,15 +103,11 @@ export function VideoTopTemplate({ isHost, name, selectedActivities, room, socke
             trickle: false,
             stream,
         });
-
         const user = { peerId: callerId, name: callerName, peer: peer };
-
         user.peer.on("signal", signal => {
             socket.emit("returningSignal", { signal, callerId })
         })
-
         user.peer.signal(incomingSignal);
-
         return user;
     }
 

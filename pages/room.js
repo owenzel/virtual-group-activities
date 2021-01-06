@@ -10,7 +10,7 @@ const socket = io();
 
 export default function Room() {
   // Use state to keep track of screen
-  const [screen, setScreen] = useState(<JoinRoom socket={socket} updateScreen={updateScreen} />);
+  const [screen, setScreen] = useState(<JoinRoom updateScreen={updateScreen} />);
 
   function updateScreen(isHost, name, activities, roomId) {
     setScreen(<VideoTopTemplate isHost={isHost} name={name} selectedActivities={activities} room={roomId} socket={socket} />);

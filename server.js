@@ -55,7 +55,6 @@ app.post('/api/create', [
   body('hostName').not().isEmpty(),
   body('hostEmail').isEmail().normalizeEmail(),
   body('hostPassword').not().isEmpty(),
-  body('selectedActivities').not().isEmpty(),
 ], (req, res) => {
   // If the inputs are not valid, throw an error
   const errors = validationResult(req);
@@ -63,6 +62,12 @@ app.post('/api/create', [
   if (!errors.isEmpty()) {
     return res.send({ error: 'Please enter a valid name, email, and password.' });
   }
+  // If the user selected activities, ensure they're valid
+  req.body.selectedActivities.forEach(selectedActivity => {
+    if (activityOptions.findIndex(activityOption => selectedActivity.title == activityOption.title) == -1) {
+      return res.send({ error: 'Please enter (a) valid activity/activities.' });
+    }
+  });
 
   // If the inputs are valid, proceed with creating the room
   

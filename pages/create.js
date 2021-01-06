@@ -12,8 +12,7 @@ export default function Create({ activities }) {
   const passwordRef = useRef();
   const confirmPasswordRef = useRef();
   
-  const selectedActivities = [];
-  activities.forEach(activity => selectedActivities.push({ 'title': activity.title, 'selected': false }));
+  activities = activities.map(activity => ({ 'title': activity.title, 'selected': false }));
 
   const [pageContent, setPageContent] = useState({ 
    color: "primary",
@@ -48,11 +47,8 @@ export default function Create({ activities }) {
     </Form> });
 
   function onActivityCheckMarkChange(e) {
-    selectedActivities.map((activity, index) => {
-      if (activity.title === e.target.name) {
-        activity.selected = e.target.checked;
-      }
-    });
+    const index = activities.findIndex(activity => activity.title == e.target.name);
+    activities[index].selected = e.target.checked;
   }
 
   // Handle the user's submission of the join room form
@@ -68,6 +64,15 @@ export default function Create({ activities }) {
 
     // Generate random id for event
     const id = uuidv4();
+
+    // Get selected activities
+    let selectedActivities = [];
+    activities.forEach(activity => {
+      if (activity.selected) {
+        selectedActivities.push(activity);
+      }
+    });
+    console.log(selectedActivities);
 
     // POST activity and host information to the server for storage in memory
     fetch('/api/create', {
@@ -92,10 +97,15 @@ export default function Create({ activities }) {
             <p>Host email: {emailRef.current.value}</p>
             <p>Host password: {passwordRef.current.value}</p>
             <p>Event Room Id: {id}</p>
-            <p>Event Activities: </p>
-            <ul>
-              {selectedActivities.map((activity, index) => { return <li key={index}>{activity.title}</li> })}
-            </ul>
+            {selectedActivities.length > 0 ?
+              <>
+                <p>Event Activities: </p>
+                <ul>
+                  {selectedActivities.map((activity, index) => { return <li key={index}>{activity.title}</li> })}
+                </ul>
+              </> 
+              : <></>
+            }
             <hr />
             <p>Share the Event Room Id with your guests (up to 3 guests allowed) so they can use it to join at the time of the event! Do NOT share your host password!</p>
           </>
@@ -131,7 +141,7 @@ export default function Create({ activities }) {
 
 // Fetch the activity options before the component renders and pass it as a prop to the Create component
 export async function getStaticProps(context) {
-  const res = await fetch ('http://localhost:3000/api/activities');
+  const res = await fetch ('http://192.168.0.141:3000/api/activities');
   const data = await res.json();
 
   if (!data) {

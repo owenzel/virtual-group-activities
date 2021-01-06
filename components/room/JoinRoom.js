@@ -1,8 +1,7 @@
-import Head from 'next/head';
 import { useRef } from 'react';
 import { Container, Row, Col, Alert, Form, Button } from 'react-bootstrap';
 
-export function JoinRoom({ socket, updateScreen }) {
+export function JoinRoom({ updateScreen }) {
   // Get the name and room id input fields
   const nameRef = useRef();
   const roomIdRef = useRef();
@@ -32,12 +31,6 @@ export function JoinRoom({ socket, updateScreen }) {
   }
 
   return (
-    <div >
-      <Head>
-        <title>AltruTec</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
       <Container style={{ paddingTop: '30px'}}>
         <Row>
           <Col>
@@ -62,6 +55,5 @@ export function JoinRoom({ socket, updateScreen }) {
           </Col>
         </Row>
       </Container>
-    </div>
   );
 }

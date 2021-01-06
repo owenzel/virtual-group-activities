@@ -1,13 +1,6 @@
-//import { useState } from 'react';
 import { Container, Row, Col, Card, ListGroup, ButtonGroup, Button } from 'react-bootstrap';
 
 export function WouldYouRather({ users }) {
-    //const [roomUsers, setRoomUsers] = useState([]);
-
-    // socket.on('roomUsers', ({ userList }) => {
-    //     setRoomUsers(userList);
-    // });
-
     return (
         <Container>
             <Row>
