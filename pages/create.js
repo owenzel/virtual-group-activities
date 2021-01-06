@@ -11,6 +11,7 @@ export default function Create({ activities }) {
   const emailRef = useRef();
   const passwordRef = useRef();
   const confirmPasswordRef = useRef();
+  const roomIdRef = useRef();
   
   activities = activities.map(activity => ({ 'title': activity.title, 'selected': false }));
 
@@ -36,6 +37,10 @@ export default function Create({ activities }) {
           <Form.Control type="password" ref={confirmPasswordRef} required ></Form.Control>
       </Form.Group>
       <Form.Group>
+          <Form.Label>Enter a Room Id:</Form.Label>
+          <Form.Control type="text" ref={roomIdRef} required ></Form.Control>
+      </Form.Group>
+      <Form.Group>
           <Form.Label>Select the Activities to Include in Your Event:</Form.Label>
           <div>
             {activities.map((activity, index) => {
@@ -46,6 +51,7 @@ export default function Create({ activities }) {
       <Button type="submit">Create Event</Button>
     </Form> });
 
+  // Handle the user checking or unchecking an activity
   function onActivityCheckMarkChange(e) {
     const index = activities.findIndex(activity => activity.title == e.target.name);
     activities[index].selected = e.target.checked;
@@ -62,9 +68,6 @@ export default function Create({ activities }) {
         return alert('Passwords must match!');
     }
 
-    // Generate random id for event
-    const id = uuidv4();
-
     // Get selected activities
     let selectedActivities = [];
     activities.forEach(activity => {
@@ -72,13 +75,12 @@ export default function Create({ activities }) {
         selectedActivities.push(activity);
       }
     });
-    console.log(selectedActivities);
 
     // POST activity and host information to the server for storage in memory
     fetch('/api/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roomId: id, hostName: nameRef.current.value, hostEmail: emailRef.current.value, hostPassword: passwordRef.current.value, selectedActivities: selectedActivities })
+      body: JSON.stringify({ roomId: roomIdRef.current.value, hostName: nameRef.current.value, hostEmail: emailRef.current.value, hostPassword: passwordRef.current.value, selectedActivities: selectedActivities })
     })
     .then(response => response.json())
     .then(data => {
@@ -96,7 +98,7 @@ export default function Create({ activities }) {
             <p>Host name: {nameRef.current.value}</p>
             <p>Host email: {emailRef.current.value}</p>
             <p>Host password: {passwordRef.current.value}</p>
-            <p>Event Room Id: {id}</p>
+            <p>Event Room Id: {roomIdRef.current.value}</p>
             {selectedActivities.length > 0 ?
               <>
                 <p>Event Activities: </p>

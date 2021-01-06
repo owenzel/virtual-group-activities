@@ -60,8 +60,14 @@ app.post('/api/create', [
   const errors = validationResult(req);
   // TODO: Differentiate between errors caused by user input (name, email, pass) and errors caused by not receiving UUID
   if (!errors.isEmpty()) {
-    return res.send({ error: 'Please enter a valid name, email, and password.' });
+    return res.send({ error: 'Please enter a name, valid email, password, and confirmed password.' });
   }
+
+  //If the user entered a room Id that is already taken, alert the client
+  if (rooms[req.body.roomId]) {
+    return res.send({ error: 'This Room Id is not available. Please enter a different one.' });
+  }
+
   // If the user selected activities, ensure they're valid
   req.body.selectedActivities.forEach(selectedActivity => {
     if (activityOptions.findIndex(activityOption => selectedActivity.title == activityOption.title) == -1) {

@@ -17,8 +17,6 @@ export default function Room() {
   }
 
   useEffect(() => {
-    // TODO: Add logic for setting the screen to the appropriate activity
-
     // On the component unmount, close the connection when the component disappears from the DOM (to prevent memory leaks)
     return () => socket.disconnect();
   }, []);
