@@ -132,8 +132,16 @@ io.on('connection', socket => {
       roomUsers.push({ id: socket.id, name: name });
 
       // Send list of room users to all clients in the room
-      io.in(roomId).emit('roomUsers', { userList: roomUsers });
+      socket.emit('roomUsers', { userList: roomUsers });
   });
+
+    socket.on('sendingSignal', payload => {
+        io.to(payload.userToSignal).emit('userJoined', { signal: payload.signal, callerID: payload.callerID });
+    });
+
+    socket.on('returningSignal', payload => {
+        io.to(payload.callerID).emit('receivingReturnedSignal', { signal: payload.signal, id: socket.id });
+    });
 
   // Handle the user disconnecting
   socket.on('disconnect', () => {

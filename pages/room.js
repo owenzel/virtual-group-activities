@@ -12,8 +12,8 @@ export default function Room() {
   // Use state to keep track of screen
   const [screen, setScreen] = useState(<JoinRoom socket={socket} updateScreen={updateScreen} />);
 
-  function updateScreen(isHost, activities) {
-    setScreen(<VideoTopTemplate isHost={isHost} selectedActivities={activities} socket={socket} />);
+  function updateScreen(isHost, name, activities, roomId) {
+    setScreen(<VideoTopTemplate isHost={isHost} name={name} selectedActivities={activities} room={roomId} socket={socket} />);
   }
 
   useEffect(() => {
