@@ -28,6 +28,8 @@ function VideoChatWindow({ user }) {
 }
 
 export function VideoTopTemplate({ isHost, name, selectedActivities, room, socket }) {
+    console.log(selectedActivities);
+    
     const [users, setUsers] = useState([]);
     const userVideoRef = useRef();
     const usersRef = useRef([]);
@@ -124,7 +126,7 @@ export function VideoTopTemplate({ isHost, name, selectedActivities, room, socke
                     })}
                 </CardGroup>
             </Row>
-            <Row style={{ marginTop: '30px'}}>
+            <Row>
                 <ActivityComponent room={room} users={[{ peerId: socket.id, name: name}, ...users]} socket={socket} />
             </Row>
         </Container>

@@ -71,11 +71,11 @@ app.post('/api/create', [
     return res.send({ error: 'This Room Id is not available. Please enter a different one.' });
   }
 
-  const selectedActivities = req.body.selectedActivities;
+  const selectedActivities = req.body.selectedActivities.map(activity => activity.title);
 
   // If the user selected activities, ensure they're valid
   selectedActivities.forEach(selectedActivity => {
-    if (activityOptions.findIndex(activityOption => selectedActivity.title == activityOption.title) == -1) {
+    if (activityOptions.findIndex(activityOption => selectedActivity == activityOption.title) == -1) {
       return res.send({ error: 'Please enter (a) valid activity/activities.' });
     }
   });
@@ -93,8 +93,10 @@ app.post('/api/create', [
   };
 
   for (let i = 0; i < selectedActivities.length; i++) {
-    rooms[roomId][selectedActivities[i].title] = activityOptions.find(activity => activity.title == selectedActivities[i].title).data
+    rooms[roomId][selectedActivities[i]] = activityOptions.find(activity => activity.title == selectedActivities[i]).data
   }
+
+  console.log(rooms[roomId]);
 
   // Send dummy data to signify success
   res.send(JSON.stringify({ success: '' }));
@@ -116,7 +118,7 @@ app.post('/api/join', [
   {
       return res.send({ error: 'This activity room is full. Please create your own activity room or wait until another person disconnects.' });
   }
-
+  
   //Hash the password, if this is a potential host
   if (req.body.hostPassword != '') {
     const hashedPassword = djb2_xor(req.body.hostPassword);
@@ -127,11 +129,11 @@ app.post('/api/join', [
     }
 
     // If this is the host (the passwords matched), send this back to the client (along with the activities)
-    return res.send({ host: true, activities: rooms[req.body.roomId]['activities'] });
+    return res.send({ host: true, selectedActivities: rooms[req.body.roomId]['activities'] });
   }
 
   // If this is not the host, send this back to the client (along with the activities)
-  res.send({ host: false, selectedActivities: [ 'Would You Rather' ] });
+  return res.send({ host: false, selectedActivities: rooms[req.body.roomId]['activities'] });
 });
 
 // Handle a client connection

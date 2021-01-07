@@ -28,7 +28,7 @@ export default function Room() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Container style={{ paddingTop: '30px' }}>
+      <Container style={{ paddingTop: '30px', paddingBottom: '30px' }}>
         <Row>
           <Col>
             {screen}
