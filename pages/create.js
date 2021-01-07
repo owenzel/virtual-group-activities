@@ -143,7 +143,7 @@ export default function Create({ activities }) {
 
 // Fetch the activity options before the component renders and pass it as a prop to the Create component
 export async function getStaticProps(context) {
-  const res = await fetch ('http://192.168.0.141:3000/api/activities');
+  const res = await fetch ('http://192.168.0.141:3000/api/activity-names');
   const data = await res.json();
 
   if (!data) {

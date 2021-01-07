@@ -2,8 +2,8 @@ import Head from 'next/head';
 import { useState, useEffect } from 'react';
 import io from "socket.io-client";
 import { Container, Row, Col } from 'react-bootstrap';
-import { JoinRoom } from '../components/room/JoinRoom';
-import { VideoTopTemplate } from '../components/room/Templates';
+import { JoinRoom } from '../components/JoinRoom';
+import { VideoTopTemplate } from '../components/Templates';
 
 // Connect the client to the socket.io server
 const socket = io();

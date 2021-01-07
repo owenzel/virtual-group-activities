@@ -4,7 +4,7 @@ import Peer from "simple-peer";
 import { Container, Row, CardGroup, Card } from 'react-bootstrap';
 
 // Activities:
-import { WouldYouRather } from './Activities';
+import { WouldYouRather } from './activities/WouldYouRather';
 
 const activityComponents = {
     'Would You Rather': WouldYouRather,
@@ -125,7 +125,7 @@ export function VideoTopTemplate({ isHost, name, selectedActivities, room, socke
                 </CardGroup>
             </Row>
             <Row style={{ marginTop: '30px'}}>
-                <ActivityComponent users={[{ name: name}, ...users]} />
+                <ActivityComponent users={[{ peerId: socket.id, name: name}, ...users]} socket={socket} />
             </Row>
         </Container>
     );

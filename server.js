@@ -1,10 +1,11 @@
-// Imports 
 const app = require('express')();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 const next = require('next');
 const bodyParser = require('body-parser'); // Middleware for sanitizing requests
 const { body, validationResult } = require('express-validator'); // Middleware for sanitizing user input
+const neatCsv = require('neat-csv');
+const fs = require('fs');
 
 // Server set up with Next.js
 const port = parseInt(process.env.PORT, 10) || 3000;
@@ -31,9 +32,6 @@ const activityOptions = [
   { title: 'Would You Rather',
     description: 'Casual Game'
   },
-  { title: 'Never Have I Ever',
-    description: 'Casual Game'
-  },
 ];
 
 // FOR TESTING -- TODO: DELETE LATER:
@@ -44,7 +42,7 @@ rooms['test'] = {
 };
 
 // Handle GET requests to the /api/activities route (at the pre-render of the /create page) by returning the activityOptions array
-app.get('/api/activities', (req, res) => {
+app.get('/api/activity-names', (req, res) => {
   res.send({ activities: activityOptions });
 });
 
@@ -84,7 +82,7 @@ app.post('/api/create', [
   rooms[req.body.roomId] = { 
     'host': { 'id': '', 'name': req.body.hostName, 'email': req.body.hostEmail, 'password': hashedPassword },
     'users': [],
-    'activities': req.body.selectedActivities
+    'activities': req.body.selectedActivities || []
   };
 
   // Send dummy data to signify success
@@ -154,6 +152,41 @@ io.on('connection', socket => {
     socket.on('returningSignal', payload => {
         io.to(payload.callerId).emit('receivingReturnedSignal', { signal: payload.signal, id: socket.id });
     });
+
+    // Game socket.io events:
+    let activityData;
+    let activityIndex = -1;
+
+    // Handle a user joining the game by sending back the current index
+    socket.on('joinGame', ({ activity }) => {
+      // If the game hasn't started yet, send starter data
+      if (activityIndex == -1) {
+        socket.emit('gameStart');
+      }
+      // TODO: Clean up this logic
+      else if (activity == 'Would You Rather') {
+        socket.emit('gameStart', { choice1: activityData[activityIndex].choice_1, choice2: activityData[activityIndex].choice_2 });
+      }
+    });
+
+    socket.on('requestNextQuestion', async ({ activity }) => {
+      activityIndex++;
+      // TODO: Clean up this logic
+      if (activity == 'Would You Rather' && activityIndex == -1) {
+        // If this is the start of the game, get the data
+        fs.readFile('./wouldYouRather.csv', async (err, data) => {
+          if (err) {
+            return console.error(err);
+          }
+          activityData = await neatCsv(data);
+          io.in(roomId).emit('nextQuestion', { choice1: activityData[0].choice_1, choice2: activityData[0].choice_2 });
+        });
+      }
+      else if (activity == 'Would You Rather' && activityIndex < activityData.length) {
+        io.in(roomId).emit('nextQuestion', { choice1: activityData[activityIndex].choice_1, choice2: activityData[activityIndex].choice_2 });
+      }
+    }
+  );
 
   // Handle the user disconnecting
   socket.on('disconnect', () => {
