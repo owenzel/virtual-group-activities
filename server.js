@@ -93,7 +93,7 @@ app.post('/api/create', [
   };
 
   for (let i = 0; i < selectedActivities.length; i++) {
-    rooms[roomId][selectedActivities[i]] = activityOptions.find(activity => activity.title == selectedActivities[i]).data;
+    rooms[roomId][selectedActivities[i]] = activityOptions.find(activity => activity.title == selectedActivities[i].title).data
   }
 
   // Send dummy data to signify success
