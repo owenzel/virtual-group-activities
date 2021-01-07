@@ -125,7 +125,7 @@ export function VideoTopTemplate({ isHost, name, selectedActivities, room, socke
                 </CardGroup>
             </Row>
             <Row style={{ marginTop: '30px'}}>
-                <ActivityComponent users={[{ peerId: socket.id, name: name}, ...users]} socket={socket} />
+                <ActivityComponent room={room} users={[{ peerId: socket.id, name: name}, ...users]} socket={socket} />
             </Row>
         </Container>
     );

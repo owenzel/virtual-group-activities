@@ -24,13 +24,15 @@ const ROOM_CAPACITY = 4;
   //          roomId: { 
   //                'host': { 'id': '', 'name': '', 'email': '', 'password': '' }, 
   //                'users': [{ 'id': '', 'name': '' } ],
-  //                'activities': [], 
+  //                'activities': [],
+  //                'Would You Rather': { activityData: [], activityIndex: -1 }   -- example of activity storage
   //              }
   //         }
 const rooms = {};
 const activityOptions = [
   { title: 'Would You Rather',
-    description: 'Casual Game'
+    description: 'Casual Game',
+    data: { activityData: [], activityIndex: -1 }
   },
 ];
 
@@ -39,6 +41,7 @@ rooms['test'] = {
   'host': { 'id': '', 'name': 'test', 'email': 'test@gmail.com', 'password': djb2_xor('test') },
   'users': [],
   'activities': ['Would You Rather'],
+  'Would You Rather': { activityData: [], activityIndex: -1 },
 };
 
 // Handle GET requests to the /api/activities route (at the pre-render of the /create page) by returning the activityOptions array
@@ -61,13 +64,17 @@ app.post('/api/create', [
     return res.send({ error: 'Please enter a name, valid email, password, and confirmed password.' });
   }
 
+  const roomId = req.body.roomId;
+
   //If the user entered a room Id that is already taken, alert the client
-  if (rooms[req.body.roomId]) {
+  if (rooms[roomId]) {
     return res.send({ error: 'This Room Id is not available. Please enter a different one.' });
   }
 
+  const selectedActivities = req.body.selectedActivities;
+
   // If the user selected activities, ensure they're valid
-  req.body.selectedActivities.forEach(selectedActivity => {
+  selectedActivities.forEach(selectedActivity => {
     if (activityOptions.findIndex(activityOption => selectedActivity.title == activityOption.title) == -1) {
       return res.send({ error: 'Please enter (a) valid activity/activities.' });
     }
@@ -79,11 +86,15 @@ app.post('/api/create', [
   const hashedPassword = djb2_xor(req.body.hostPassword);
 
   // Save the new room to the rooms dictionary
-  rooms[req.body.roomId] = { 
+  rooms[roomId] = { 
     'host': { 'id': '', 'name': req.body.hostName, 'email': req.body.hostEmail, 'password': hashedPassword },
     'users': [],
-    'activities': req.body.selectedActivities || []
+    'activities': selectedActivities || []
   };
+
+  for (let i = 0; i < selectedActivities.length; i++) {
+    rooms[roomId][selectedActivities[i]] = activityOptions.find(activity => activity.title == selectedActivities[i]).data;
+  }
 
   // Send dummy data to signify success
   res.send(JSON.stringify({ success: '' }));
@@ -154,36 +165,36 @@ io.on('connection', socket => {
     });
 
     // Game socket.io events:
-    let activityData;
-    let activityIndex = -1;
 
     // Handle a user joining the game by sending back the current index
-    socket.on('joinGame', ({ activity }) => {
+    socket.on('joinGame', ({ room, activity }) => {
+      roomId = room;
       // If the game hasn't started yet, send starter data
-      if (activityIndex == -1) {
-        socket.emit('gameStart');
-      }
       // TODO: Clean up this logic
-      else if (activity == 'Would You Rather') {
-        socket.emit('gameStart', { choice1: activityData[activityIndex].choice_1, choice2: activityData[activityIndex].choice_2 });
+      if (activity == 'Would You Rather') {
+        if (rooms[roomId][activity]['activityIndex'] == -1) {
+          socket.emit('gameStart', { choice1: null, choice2: null });
+        } else {
+          socket.emit('gameStart', { choice1: rooms[roomId][activity]['activityData'][rooms[roomId][activity]['activityIndex']].choice_1, choice2: rooms[roomId][activity]['activityData'][rooms[roomId][activity]['activityIndex']].choice_2 });
+        }
       }
     });
 
     socket.on('requestNextQuestion', async ({ activity }) => {
-      activityIndex++;
+      rooms[roomId][activity]['activityIndex']++;
       // TODO: Clean up this logic
-      if (activity == 'Would You Rather' && activityIndex == -1) {
+      if (activity == 'Would You Rather' && rooms[roomId][activity]['activityIndex'] == 0) {
         // If this is the start of the game, get the data
         fs.readFile('./wouldYouRather.csv', async (err, data) => {
           if (err) {
             return console.error(err);
           }
-          activityData = await neatCsv(data);
-          io.in(roomId).emit('nextQuestion', { choice1: activityData[0].choice_1, choice2: activityData[0].choice_2 });
+          rooms[roomId][activity]['activityData'] = await neatCsv(data);
+          io.in(roomId).emit('nextQuestion', { choice1: rooms[roomId][activity]['activityData'][0].choice_1, choice2: rooms[roomId][activity]['activityData'][0].choice_2 });
         });
       }
-      else if (activity == 'Would You Rather' && activityIndex < activityData.length) {
-        io.in(roomId).emit('nextQuestion', { choice1: activityData[activityIndex].choice_1, choice2: activityData[activityIndex].choice_2 });
+      else if (activity == 'Would You Rather' && rooms[roomId][activity]['activityIndex'] < rooms[roomId][activity]['activityData'].length) {
+        io.in(roomId).emit('nextQuestion', { choice1: rooms[roomId][activity]['activityData'][rooms[roomId][activity]['activityIndex']].choice_1, choice2: rooms[roomId][activity]['activityData'][rooms[roomId][activity]['activityIndex']].choice_2 });
       }
     }
   );

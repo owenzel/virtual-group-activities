@@ -1,20 +1,27 @@
 import { useState, useRef, useEffect } from 'react';
 import { Container, Row, Col, Card, ListGroup, ButtonGroup, Button } from 'react-bootstrap';
 
-export function WouldYouRather({ users, socket }) {
-    const [ game, setGame ] = useState(<Button variant="success" size="lg" onClick={startGame}>Start Game</Button>);
+export function WouldYouRather({ room, users, socket }) {
+    const [ game, setGame ] = useState();
     const choice1Ref = useRef();
     const choice2Ref = useRef();
 
     useEffect(() => {
-        socket.emit('joinGame', { activity: 'Would You Rather' });
+        socket.emit('joinGame', { room, activity: 'Would You Rather' });
         socket.on('gameStart', ({ choice1, choice2 }) => {
             if (choice1 && choice2) {
                 setGameContent();
                 choice1Ref.current.innerHTML = choice1;
                 choice2Ref.current.innerHTML = choice2;
+            } else {
+                setGame(<Button variant="success" size="lg" onClick={startGame}>Start Game</Button>);
             }
-        })
+        });
+        socket.on('nextQuestion', ({ choice1, choice2 }) => {
+            setGameContent();
+            choice1Ref.current.innerHTML = choice1;
+            choice2Ref.current.innerHTML = choice2;
+        });
     }, []);
 
     function setGameContent() {
