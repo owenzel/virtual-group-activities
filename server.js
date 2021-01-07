@@ -93,7 +93,7 @@ app.post('/api/create', [
   };
 
   for (let i = 0; i < selectedActivities.length; i++) {
-    rooms[roomId][selectedActivities[i]] = activityOptions.find(activity => activity.title == selectedActivities[i].title).data
+    rooms[roomId][selectedActivities[i].title] = activityOptions.find(activity => activity.title == selectedActivities[i].title).data
   }
 
   // Send dummy data to signify success
@@ -167,7 +167,7 @@ io.on('connection', socket => {
     // Game socket.io events:
 
     // Handle a user joining the game by sending back the current index
-    socket.on('joinGame', ({ room, activity }) => {
+    socket.on('joinGame', ({ room: room, activity }) => {
       roomId = room;
       // If the game hasn't started yet, send starter data
       // TODO: Clean up this logic

@@ -9,11 +9,13 @@ export function WouldYouRather({ room, users, socket }) {
     useEffect(() => {
         socket.emit('joinGame', { room, activity: 'Would You Rather' });
         socket.on('gameStart', ({ choice1, choice2 }) => {
+            console.log('gameStart event');
             if (choice1 && choice2) {
                 setGameContent();
                 choice1Ref.current.innerHTML = choice1;
                 choice2Ref.current.innerHTML = choice2;
             } else {
+                console.log('game has not started');
                 setGame(<Button variant="success" size="lg" onClick={startGame}>Start Game</Button>);
             }
         });
